@@ -1,0 +1,21 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Build OpenCV Project",
+            "type": "shell",
+            "command": "g++",
+            "args": [
+                "-I", "C:/Users/tahol/opencv/build/include",
+                "-L", "C:/Users/tahol/opencv/build/x64/vc16/lib",
+                "main.cpp",
+                "-o", "main.exe",
+                "-lopencv_core480", "-lopencv_imgcodecs480", "-lopencv_highgui480"
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            }
+        }
+    ]
+}

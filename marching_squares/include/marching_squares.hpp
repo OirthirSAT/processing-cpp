@@ -10,13 +10,15 @@ class MarchingSquares {
     private: 
         typedef std::vector<std::vector<std::tuple<int,int,int>>> _NUMERICAL_ARRAY;   
         typedef std::tuple<int,int> _POINT;
+        typedef std::vector<std::vector<float>> _2D_Array;
     public:
         MarchingSquares();
 
         std::pair<size_t, size_t> getShape(const _NUMERICAL_ARRAY& array);
 
-        _NUMERICAL_ARRAY readfile(const std::string& filename, float downsample_factor);
+        cv::Mat readfile(const std::string& filename, float downsample_factor);
+        std::tuple<float, cv::Mat> _otsu_segmentation(cv::Mat& image);
 
-}
+};
 
 
