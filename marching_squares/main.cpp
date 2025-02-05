@@ -7,6 +7,7 @@ int main(){
     
     cv::Mat result = ms.readfile(filename, downsample_factor);
     std::tuple<float, cv::Mat> otsu = ms._otsu_segmentation(result);
+    std::tuple<std::map<_POINT, bool>, int, int> tup = ms._point_array(std::get<1>(otsu))
     
     return 0;
 }

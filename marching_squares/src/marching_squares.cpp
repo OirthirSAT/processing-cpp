@@ -13,7 +13,7 @@ MarchingSquares::MarchingSquares()
 
 }
 
-std::pair<size_t,size_t> MarchingSquares::getShape(const _NUMERICAL_ARRAY& array) {
+std::pair<size_t,size_t> MarchingSquares::getShape(const _2D_Array& array) {
     size_t rows = array.size();
     size_t cols = rows > 0 ? array[0].size() : 0;
     return {rows,cols};
@@ -57,12 +57,80 @@ static std::tuple<float, cv::Mat> MarchingSquares::_otsu_segmentation(cv::Mat& i
     cv::Mat binary_image;
     float otsu_thresh = cv::threshold(hue_channel, binary_image, 0,255, cv::THRESH_BINARY | cv::THRESH_OTSU);
 
-    return std::make_tuple<otsu_thresh,binary_image>;
+    _2D_Array processed_image(binary_image.rows, std::vector<float>(binary_image.cols))
+
+    for (int i, i < binary_image.rows, i++) {
+        for (int j, j < binary_image.cols, j++) {
+            processed_image[i][j] = static_cast<float>(binary_image.at<unchar>(i,j));
+        }
+    }
+
+    return processed_image;
 
 
 }
+// May need to use a custom comparator to order the states dictionary
+// differently ie ordering by y fixed value first.
+
 // static int MarchingSquares::_sort_key(_POINT point) {
-//     return point[1] * 100 + point[0]
+//     return std::get<1>(point) * 100 + std::get<0>(point);
 // }
-// static std::tuple<std::map<_POINT, bool>, int, int> MarchingSquares::_point_array(){}
+static std::tuple<std::map<_POINT, bool>, int, int> MarchingSquares::_point_array(_2D_Array image){
+    std::vector<_POINT> black_list;
+    std::vector<_POINT> white_list;
+
+    auto shape = getShape(image);
+    size_t x = shape.first - 1;
+    size_t y = shape.second - 1;
+
+    for (int i=0; i < x+1; ++i) {
+        for (int j=0; j < y+1; ++j) {
+            if (image[i][j] == 1) {
+                black_list.push_back(std::make_tuple(j, x-i));
+            }
+            else {
+                white_list.push_back(std::make_tuple(j,x-i));
+            }
+        }
+    }
+
+    std::map<_POINT, bool> state;
+    std::vector<int> xblack;
+    std::vector<int> yblack;
+
+    for (int i =0; i < black_list.size(); ++i) {
+        xblack.push_back(std::get<0>(black_list[i]));
+        yblack.push_back(std::get<1>(black_list[i]));
+        state[black_list[i]] = true;
+    }
+
+    std::vector<int> xwhite;
+    std::vector<int> ywhite;
+    for (int i =0; i < white_list.size(); ++i) {
+        xwhite.push_back(std::get<0>(white_list[i]));
+        ywhite.push_back(std::get<1>(white_list[i]));
+        state[white_list[i]] = false;
+    }
+
+    return std::make_tuple(state,x,y);
+}
+
+ static int MarchingSquares::_get_value(std::map(_POINT, bool) state, int i, int j) {
+    
+    int A = state_dict[std::make_tuple(i,j)];
+    int B = state_dict[std::make_tuple(i + 2,j)];
+    int C = state_dict[std::make_tuple(i,j + 2)];
+    int D = state_dict[std::make_tuple(i + 2,j + 2)];
+    
+    return A + B * 2+ C * 4 + D * 8;
+ }
+    
+
+    
+ 
+
+
+
+
+
 

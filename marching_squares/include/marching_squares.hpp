@@ -18,7 +18,9 @@ class MarchingSquares {
 
         cv::Mat readfile(const std::string& filename, float downsample_factor);
         std::tuple<float, cv::Mat> _otsu_segmentation(cv::Mat& image);
-
+        std::tuple<std::map<_POINT, bool>, int, int> _point_array(_2D_Array image);
+        int _get_value(std::map(_POINT, bool));
+        
 };
 
 
