@@ -1,0 +1,14 @@
+[
+{
+  "directory": "C:/Users/tahol/code/processing-cpp/marching_squares/build",
+  "command": "C:\\msys64\\ucrt64\\bin\\g++.exe  @CMakeFiles/MarchingSquares.dir/includes_CXX.rsp -g -std=gnu++17 -o CMakeFiles\\MarchingSquares.dir\\main.cpp.obj -c C:\\Users\\tahol\\code\\processing-cpp\\marching_squares\\main.cpp",
+  "file": "C:/Users/tahol/code/processing-cpp/marching_squares/main.cpp",
+  "output": "CMakeFiles/MarchingSquares.dir/main.cpp.obj"
+},
+{
+  "directory": "C:/Users/tahol/code/processing-cpp/marching_squares/build",
+  "command": "C:\\msys64\\ucrt64\\bin\\g++.exe  @CMakeFiles/MarchingSquares.dir/includes_CXX.rsp -g -std=gnu++17 -o CMakeFiles\\MarchingSquares.dir\\src\\marching_squares.cpp.obj -c C:\\Users\\tahol\\code\\processing-cpp\\marching_squares\\src\\marching_squares.cpp",
+  "file": "C:/Users/tahol/code/processing-cpp/marching_squares/src/marching_squares.cpp",
+  "output": "CMakeFiles/MarchingSquares.dir/src/marching_squares.cpp.obj"
+}
+]

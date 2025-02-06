@@ -1,0 +1,3 @@
+"C:\Program Files\CMake\bin\cmake.exe" -E rm -f CMakeFiles\MarchingSquares.dir/objects.a
+C:\msys64\ucrt64\bin\ar.exe qc CMakeFiles\MarchingSquares.dir/objects.a @CMakeFiles\MarchingSquares.dir\objects1.rsp
+C:\msys64\ucrt64\bin\g++.exe -g -Wl,--whole-archive CMakeFiles\MarchingSquares.dir/objects.a -Wl,--no-whole-archive -o MarchingSquares.exe -Wl,--out-implib,libMarchingSquares.dll.a -Wl,--major-image-version,0,--minor-image-version,0 @CMakeFiles\MarchingSquares.dir\linkLibs.rsp
