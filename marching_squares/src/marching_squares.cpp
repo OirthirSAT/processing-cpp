@@ -49,7 +49,7 @@ static _MarchingSquares::_NUMERICAL_ARRAY MarchingSquares::readfile(const std::s
     return image_hsv;
 }   
 
-static std::tuple<float, cv::Mat> MarchingSquares::_otsu_segmentation(cv::Mat& image) {
+static _2D_Array MarchingSquares::_otsu_segmentation(cv::Mat& image) {
     
     cv::Mat hue_channel;
     cv::extractChannel(image, hue_channel, 0);
@@ -123,6 +123,87 @@ static std::tuple<std::map<_POINT, bool>, int, int> MarchingSquares::_point_arra
     int D = state_dict[std::make_tuple(i + 2,j + 2)];
     
     return A + B * 2+ C * 4 + D * 8;
+ }
+
+ static std::vector<std::tuple<_POINT, _POINT>> MarchingSquares::_generate_edges(int i, int j, int index) {
+
+    int x = i;
+    int y = j;
+
+    std::vector<std::tuple<_POINT,_POINT>> vector;
+    _POINT start;
+    _POINT end;
+
+    switch (index) {
+        case 0:
+        case 15:
+            return {};
+
+        case 1:
+        case 14:
+            start = std::make_tuple(x+1,y);
+            end = std::make_tuple(x,y+1);
+            vector.push_back(std::make_tuple(start,end));
+            break;
+
+        case 2:
+        case 13:
+            start = std::make_tuple(x+1,y);
+            end = std::make_tuple(x+2,y+1);
+            vector.push_back(std::make_tuple(start,end));
+            break;
+
+        case 3:
+        case 12:
+            start = std::make_tuple(x,y+1);
+            end = std::make_tuple(x+2,y+1);
+            vector.push_back(std::make_tuple(start,end));
+            break;
+
+        case 4:
+        case 11:
+            start = std::make_tuple(x,y+1);
+            end = std::make_tuple(x+1,y+2);
+            vector.push_back(std::make_tuple(start,end));
+            break;
+
+        case 5:
+        case 10:
+            start = std::make_tuple(x+1,y);
+            end = std::make_tuple(x+1,y+2);
+            vector.push_back(std::make_tuple(start,end));
+            break;
+
+        case 6:
+            start = std::make_tuple(x+2,y+1);
+            end = std::make_tuple(x+1,y+2);
+            vector.push_back(std::make_tuple(start,end));
+            start = std::make_tuple(x+1,y);
+            end = std::make_tuple(x,y+1);
+            vector.push_back(std::make_tuple(start,end));
+            break;
+
+        case 7:
+        case 8:
+            start = std::make_tuple(x+2,y+1);
+            end = std::make_tuple(x+1,y+2);
+            vector.push_back(std::make_tuple(start,end));
+            break;
+
+        case 9:
+            start = std::make_tuple(x,y+1);
+            end = std::make_tuple(x+1,y+2);
+            vector.push_back(std::make_tuple(start,end));
+            start = std::make_tuple(x+1,y);
+            end = std::make_tuple(x+2,y+1);
+            vector.push_back(std::make_tuple(start,end));
+            break;
+
+        default:
+            return {}; // unexpected cases
+        
+    }
+    return vector;
  }
     
 
