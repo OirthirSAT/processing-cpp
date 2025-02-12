@@ -59,9 +59,9 @@ static _2D_Array MarchingSquares::_otsu_segmentation(cv::Mat& image) {
 
     _2D_Array processed_image(binary_image.rows, std::vector<float>(binary_image.cols))
 
-    for (int i, i < binary_image.rows, i++) {
-        for (int j, j < binary_image.cols, j++) {
-            processed_image[i][j] = static_cast<float>(binary_image.at<unchar>(i,j));
+    for (int i = 0; i < binary_image.rows; ++i) {
+        for (int j = 0; j < binary_image.cols; ++j) {
+            processed_image[i][j] = static_cast<float>(binary_image.at<uchar>(i,j));
         }
     }
 
@@ -94,14 +94,14 @@ static std::tuple<std::map<_POINT, bool>, int, int> MarchingSquares::_point_arra
         }
     }
 
-    std::map<_POINT, bool> state;
+    std::map<_POINT, bool> state_dict;
     std::vector<int> xblack;
     std::vector<int> yblack;
 
     for (int i =0; i < black_list.size(); ++i) {
         xblack.push_back(std::get<0>(black_list[i]));
         yblack.push_back(std::get<1>(black_list[i]));
-        state[black_list[i]] = true;
+        state_dict[black_list[i]] = true;
     }
 
     std::vector<int> xwhite;
@@ -109,23 +109,23 @@ static std::tuple<std::map<_POINT, bool>, int, int> MarchingSquares::_point_arra
     for (int i =0; i < white_list.size(); ++i) {
         xwhite.push_back(std::get<0>(white_list[i]));
         ywhite.push_back(std::get<1>(white_list[i]));
-        state[white_list[i]] = false;
+        state_dict[white_list[i]] = false;
     }
 
-    return std::make_tuple(state,x,y);
+    return std::make_tuple(state_dict,x,y);
 }
 
- static int MarchingSquares::_get_value(std::map(_POINT, bool) state, int i, int j) {
+ static int MarchingSquares::_get_value(const std::map(_POINT, bool)& state_dict, int i, int j) {
     
-    int A = state_dict[std::make_tuple(i,j)];
-    int B = state_dict[std::make_tuple(i + 2,j)];
-    int C = state_dict[std::make_tuple(i,j + 2)];
-    int D = state_dict[std::make_tuple(i + 2,j + 2)];
+    int A = state_dict.at(std::make_tuple(i,j));
+    int B = state_dict.at(std::make_tuple(i + 1,j));
+    int C = state_dict.at(std::make_tuple(i,j + 1));
+    int D = state_dict.at(std::make_tuple(i + 1,j + 1));
     
     return A + B * 2+ C * 4 + D * 8;
  }
 
- static std::vector<std::tuple<_POINT, _POINT>> MarchingSquares::_generate_edges(int i, int j, int index) {
+ static std::optional<std::vector<std::tuple<_POINT, _POINT>>> MarchingSquares::_generate_edges(int i, int j, int index) {
 
     int x = i;
     int y = j;
@@ -137,73 +137,106 @@ static std::tuple<std::map<_POINT, bool>, int, int> MarchingSquares::_point_arra
     switch (index) {
         case 0:
         case 15:
-            return {};
+            return std::nullopt;
 
         case 1:
         case 14:
-            start = std::make_tuple(x+1,y);
-            end = std::make_tuple(x,y+1);
+            start = std::make_tuple(x+0.5,y);
+            end = std::make_tuple(x,y+0.5);
             vector.push_back(std::make_tuple(start,end));
             break;
 
         case 2:
         case 13:
-            start = std::make_tuple(x+1,y);
-            end = std::make_tuple(x+2,y+1);
+            start = std::make_tuple(x+0.5,y);
+            end = std::make_tuple(x+1,y+0.5);
             vector.push_back(std::make_tuple(start,end));
             break;
 
         case 3:
         case 12:
-            start = std::make_tuple(x,y+1);
-            end = std::make_tuple(x+2,y+1);
+            start = std::make_tuple(x,y+0.5);
+            end = std::make_tuple(x+1,y+0.5);
             vector.push_back(std::make_tuple(start,end));
             break;
 
         case 4:
         case 11:
-            start = std::make_tuple(x,y+1);
-            end = std::make_tuple(x+1,y+2);
+            start = std::make_tuple(x,y+0.5);
+            end = std::make_tuple(x+0.5,y+1);
             vector.push_back(std::make_tuple(start,end));
             break;
 
         case 5:
         case 10:
-            start = std::make_tuple(x+1,y);
-            end = std::make_tuple(x+1,y+2);
+            start = std::make_tuple(x+0.5,y);
+            end = std::make_tuple(x+0.5,y+1);
             vector.push_back(std::make_tuple(start,end));
             break;
 
         case 6:
-            start = std::make_tuple(x+2,y+1);
-            end = std::make_tuple(x+1,y+2);
+            start = std::make_tuple(x+1,y+0.5);
+            end = std::make_tuple(x+0.5,y+1);
             vector.push_back(std::make_tuple(start,end));
-            start = std::make_tuple(x+1,y);
-            end = std::make_tuple(x,y+1);
+            start = std::make_tuple(x+0.5,y);
+            end = std::make_tuple(x,y+0.5);
             vector.push_back(std::make_tuple(start,end));
             break;
 
         case 7:
         case 8:
-            start = std::make_tuple(x+2,y+1);
-            end = std::make_tuple(x+1,y+2);
+            start = std::make_tuple(x+1,y+0.5);
+            end = std::make_tuple(x+0.5,y+1);
             vector.push_back(std::make_tuple(start,end));
             break;
 
         case 9:
-            start = std::make_tuple(x,y+1);
-            end = std::make_tuple(x+1,y+2);
+            start = std::make_tuple(x,y+0.5);
+            end = std::make_tuple(x+0.5,y+1);
             vector.push_back(std::make_tuple(start,end));
-            start = std::make_tuple(x+1,y);
-            end = std::make_tuple(x+2,y+1);
+            start = std::make_tuple(x+0.5,y);
+            end = std::make_tuple(x+1,y+0.5);
             vector.push_back(std::make_tuple(start,end));
             break;
 
         default:
-            return {}; // unexpected cases
+            return std::nullopt; // unexpected cases
         
     }
     return vector;
+ }
+
+ static std::vector<std::vector<std::tuple<_POINT, _POINT>>> MarchingSquares::_list_vectors(const std::map<_POINT, bool>& state_dict, int x_len, int y_len) {
+    std::vector<std::vector<std::tuple<_POINT, _POINT>>> vectors;
+
+    for (int j = 1; j < y_len; ++j) {
+
+        for (int i = 1; i < x_len; ++i) {
+          
+            int index = _get_value(state_dict, i , j);
+
+            if (index == 6 || index == 9) {
+
+                std::optional<std::vector<std::tuple<_POINT, _POINT>>> double_vec = _generate_edges(i,j,index);
+                
+                if (double_vec.has_value() && !double_vec->empty()) {
+                    vectors.emplace_back(std::vector<std::tuple<_POINT,_POINT>>{double_vec-> at(0)});
+                    vectors.emplace_back(std::vector<std::tuple<_POINT,_POINT>>{double_vec-> at(1)});
+                }
+            }
+            else {
+                std::optional<std::vector<std::tuple<_POINT, _POINT>>> edges = _generate_edges(i,j,index);
+                if (edges.has_value() && !edges->empty()) {
+                    vectors.push_back(*edges);
+                }
+                
+            }
+                    
+            
+            
+        }
+    }
+    return vectors;
  }
     
 
