@@ -12,14 +12,7 @@ std::pair<size_t,size_t> getShape(const _2D_Array& array) {
     return {rows,cols};
 }
 int main() {
-    _2D_Array image(2,std::vector<float>(4,0.0f));
-    std::vector<_POINT> black_list;
-    std::vector<_POINT> white_list;
 
-    auto shape = getShape(image);
-    size_t x = shape.first - 1;
-    size_t y = shape.second - 1;
-
-    std::cout << "Shape of array is (" << x << "," << y << ")" << std::endl; 
+    std::cout << "Shape of array is 2" << std::endl; 
     return 0;
 }

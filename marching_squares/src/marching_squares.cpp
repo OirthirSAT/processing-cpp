@@ -1,9 +1,10 @@
-#include "./../include/marching_squares.hpp"
+#include "../include/marching_squares.hpp"
 #include <vector>
 #include <variant>
 #include <iostream>
 #include <opencv2/opencv.hpp>
 #include <bits/stdc++.h>
+#include <optional>
 
 using namespace cv;
 using namespace std;
@@ -13,14 +14,14 @@ MarchingSquares::MarchingSquares()
 
 }
 
-std::pair<size_t,size_t> MarchingSquares::getShape(const _2D_Array& array) {
+std::pair<size_t,size_t> MarchingSquares::_getShape(const _2D_Array& array) {
     size_t rows = array.size();
     size_t cols = rows > 0 ? array[0].size() : 0;
     return {rows,cols};
 }
 
 
-static _MarchingSquares::_NUMERICAL_ARRAY MarchingSquares::readfile(const std::string& filename, float downsample_factor) {
+cv::Mat MarchingSquares::_readfile(const std::string& filename, float downsample_factor) {
 
     Mat image_bgr = imread(filename, cv::IMREAD_COLOR);
     if (image_bgr.empty()){
@@ -49,7 +50,7 @@ static _MarchingSquares::_NUMERICAL_ARRAY MarchingSquares::readfile(const std::s
     return image_hsv;
 }   
 
-static _2D_Array MarchingSquares::_otsu_segmentation(cv::Mat& image) {
+_2D_Array MarchingSquares::_otsu_segmentation(cv::Mat& image) {
     
     cv::Mat hue_channel;
     cv::extractChannel(image, hue_channel, 0);
@@ -57,7 +58,7 @@ static _2D_Array MarchingSquares::_otsu_segmentation(cv::Mat& image) {
     cv::Mat binary_image;
     float otsu_thresh = cv::threshold(hue_channel, binary_image, 0,255, cv::THRESH_BINARY | cv::THRESH_OTSU);
 
-    _2D_Array processed_image(binary_image.rows, std::vector<float>(binary_image.cols))
+    _2D_Array processed_image(binary_image.rows, std::vector<float>(binary_image.cols));
 
     for (int i = 0; i < binary_image.rows; ++i) {
         for (int j = 0; j < binary_image.cols; ++j) {
@@ -75,11 +76,11 @@ static _2D_Array MarchingSquares::_otsu_segmentation(cv::Mat& image) {
 // static int MarchingSquares::_sort_key(_POINT point) {
 //     return std::get<1>(point) * 100 + std::get<0>(point);
 // }
-static std::tuple<std::map<_POINT, bool>, int, int> MarchingSquares::_point_array(_2D_Array image){
+std::tuple<std::map<_POINT, bool>, int, int> MarchingSquares::_point_array(_2D_Array image){
     std::vector<_POINT> black_list;
     std::vector<_POINT> white_list;
 
-    auto shape = getShape(image);
+    auto shape = _getShape(image);
     size_t x = shape.first - 1;
     size_t y = shape.second - 1;
 
@@ -88,7 +89,7 @@ static std::tuple<std::map<_POINT, bool>, int, int> MarchingSquares::_point_arra
             if (image[i][j] == 1) {
                 black_list.push_back(std::make_tuple(j, x-i));
             }
-            else {
+            else { 
                 white_list.push_back(std::make_tuple(j,x-i));
             }
         }
@@ -115,7 +116,7 @@ static std::tuple<std::map<_POINT, bool>, int, int> MarchingSquares::_point_arra
     return std::make_tuple(state_dict,x,y);
 }
 
- static int MarchingSquares::_get_value(const std::map(_POINT, bool)& state_dict, int i, int j) {
+int MarchingSquares::_get_value(const std::map<_POINT, bool>& state_dict, int i, int j) {
     
     int A = state_dict.at(std::make_tuple(i,j));
     int B = state_dict.at(std::make_tuple(i + 1,j));
@@ -125,7 +126,7 @@ static std::tuple<std::map<_POINT, bool>, int, int> MarchingSquares::_point_arra
     return A + B * 2+ C * 4 + D * 8;
  }
 
- static std::optional<std::vector<std::tuple<_POINT, _POINT>>> MarchingSquares::_generate_edges(int i, int j, int index) {
+std::optional<std::vector<std::tuple<_POINT, _POINT>>> MarchingSquares::_generate_edges(int i, int j, int index) {
 
     int x = i;
     int y = j;
@@ -206,7 +207,7 @@ static std::tuple<std::map<_POINT, bool>, int, int> MarchingSquares::_point_arra
     return vector;
  }
 
- static std::vector<std::vector<std::tuple<_POINT, _POINT>>> MarchingSquares::_list_vectors(const std::map<_POINT, bool>& state_dict, int x_len, int y_len) {
+std::vector<std::vector<std::tuple<_POINT, _POINT>>> MarchingSquares::_list_vectors(const std::map<_POINT, bool>& state_dict, int x_len, int y_len) {
     std::vector<std::vector<std::tuple<_POINT, _POINT>>> vectors;
 
     for (int j = 1; j < y_len; ++j) {
@@ -238,7 +239,115 @@ static std::tuple<std::map<_POINT, bool>, int, int> MarchingSquares::_point_arra
     }
     return vectors;
  }
+
+using Edge = std::tuple<_POINT, _POINT>;
+
+std::vector<std::vector<_POINT>> MarchingSquares::_vector_shapes(const std::vector<std::vector<Edge>>& vectors) {
+    std::vector<std::vector<_POINT>> shapes;
+    std::set<int> indices;
     
+
+    for (int i = 0; i < static_cast<int>(vectors.size()); i++) {
+        indices.insert(i);
+    }
+
+
+    while (!indices.empty()) {
+        std::vector<_POINT> shape;
+        
+
+        int idx = *indices.begin();
+        indices.erase(indices.begin());
+
+
+        Edge seg = vectors[idx][0];
+        _POINT start = std::get<0>(seg);
+        _POINT end   = std::get<1>(seg);
+        shape.push_back(start);
+        shape.push_back(end);
+
+        bool matched = true;
+        
+
+        while (matched) {
+            matched = false;
+
+            for (auto it = indices.begin(); it != indices.end(); ) {
+                int cur = *it;
+                Edge curEdge = vectors[cur][0];
+                _POINT curStart = std::get<0>(curEdge);
+                _POINT curEnd   = std::get<1>(curEdge);
+                
+
+                if (curStart == end) {
+                    end = curEnd;
+                    shape.push_back(end);
+                    it = indices.erase(it);
+                    matched = true;
+                    break; // break out to restart the search
+                } else if (curEnd == end) {
+                    end = curStart;
+                    shape.push_back(end);
+                    it = indices.erase(it);
+                    matched = true;
+                    break;
+                } else if (curStart == start) {
+                    start = curEnd;
+                    shape.insert(shape.begin(), start);
+                    it = indices.erase(it);
+                    matched = true;
+                    break;
+                } else if (curEnd == start) {
+                    start = curStart;
+                    shape.insert(shape.begin(), start);
+                    it = indices.erase(it);
+                    matched = true;
+                    break;
+                } else {
+                    ++it;
+                }
+            }
+        }
+        shapes.push_back(shape);
+    }
+
+
+    std::sort(shapes.begin(), shapes.end(), [](const std::vector<_POINT>& a, const std::vector<_POINT>& b) {
+        return a.size() > b.size();
+    });
+    return shapes;
+}
+
+
+void MarchingSquares::_show_coastline(const cv::Mat& image, const std::vector<std::vector<_POINT>>& shapes) {
+    cv::Mat displayImage;
+    
+
+    if (image.channels() == 3) {
+        cv::cvtColor(image, displayImage, cv::COLOR_HSV2BGR);
+    } else {
+        // If single-channel, convert to BGR.
+        cv::cvtColor(image, displayImage, cv::COLOR_GRAY2BGR);
+    }
+    
+    // Draw each shape on the image
+    for (const auto& shape : shapes) {
+        std::vector<cv::Point> pts;
+        for (const auto& pt : shape) {
+            double x, y;
+            std::tie(x, y) = pt;
+            pts.push_back(cv::Point(static_cast<int>(x), static_cast<int>(y)));
+        }
+
+        cv::polylines(displayImage, pts, false, cv::Scalar(0, 0, 255), 2);  // Red color for coastline
+    }
+    
+
+    cv::imshow("Coastline", displayImage);
+    cv::waitKey(0);  // Wait for a key press to close the window
+ 
+
+ }
 
     
  
