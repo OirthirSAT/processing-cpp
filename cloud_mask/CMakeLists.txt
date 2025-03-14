@@ -1,0 +1,7 @@
+cmake_minimum_required(VERSION 2.8)
+project( cloud_mask )
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_CURRENT_SOURCE_DIR})
+find_package( OpenCV REQUIRED )
+include_directories( ${OpenCV_INCLUDE_DIRS} )
+add_executable( cloud_mask cloud_mask.cpp )
+target_link_libraries( cloud_mask ${OpenCV_LIBS} )
